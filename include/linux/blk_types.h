@@ -152,6 +152,44 @@ enum rq_flag_bits {
 	__REQ_MIXED_MERGE,	/* merge of different types, fail separately */
 	__REQ_SECURE,		/* secure discard (used with __REQ_DISCARD) */
 	__REQ_NR_BITS,		/* stops here */
+	__REQ_WRITE,		
+	__REQ_FAILFAST_DEV,	
+	__REQ_FAILFAST_TRANSPORT, 
+	__REQ_FAILFAST_DRIVER,	
+
+	__REQ_SYNC,		
+	__REQ_META,		
+	__REQ_PRIO,		
+	__REQ_DISCARD,		
+	__REQ_SECURE,		
+
+	__REQ_NOIDLE,		
+	__REQ_FUA,		
+	__REQ_FLUSH,		
+
+	
+	__REQ_RAHEAD,		
+	__REQ_THROTTLED,	
+
+	
+	__REQ_SORTED = __REQ_RAHEAD, /* elevator knows about this request */	
+	__REQ_SOFTBARRIER,	
+	__REQ_NOMERGE,		
+	__REQ_STARTED,		
+	__REQ_DONTPREP,		
+	__REQ_QUEUED,		
+	__REQ_ELVPRIV,		
+	__REQ_FAILED,		
+	__REQ_QUIET,		
+	__REQ_PREEMPT,		
+	__REQ_ALLOCED,		
+	__REQ_COPY_USER,	
+	__REQ_FLUSH_SEQ,	
+	__REQ_IO_STAT,		
+	__REQ_MIXED_MERGE,	
+	__REQ_SANITIZE,
+	__REQ_URGENT,		/* urgent request */	
+	__REQ_NR_BITS,		
 };
 
 #define REQ_WRITE		(1 << __REQ_WRITE)
@@ -161,6 +199,8 @@ enum rq_flag_bits {
 #define REQ_SYNC		(1 << __REQ_SYNC)
 #define REQ_META		(1 << __REQ_META)
 #define REQ_DISCARD		(1 << __REQ_DISCARD)
+#define REQ_SANITIZE		(1 << __REQ_SANITIZE)
+#define REQ_URGENT		(1 << __REQ_URGENT)
 #define REQ_NOIDLE		(1 << __REQ_NOIDLE)
 
 #define REQ_FAILFAST_MASK \
