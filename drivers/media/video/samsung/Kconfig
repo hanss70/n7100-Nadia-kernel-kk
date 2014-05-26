@@ -104,6 +104,13 @@ config MALI_400MP_UMP_DVFS
 	default y
 	help
 	  This enables Mali driver DVFS.
+
+config GPU_CLOCK_CONTROL
+	bool "Enable GPU clock control and voltage interface"
+	depends on MALI_400MP_UMP
+	default y
+	help
+	  This enables a sysfs interface to control gpu clock and voltage.
 endif
 
 if CPU_EXYNOS4210 || CPU_EXYNOS4212 || CPU_EXYNOS4412
