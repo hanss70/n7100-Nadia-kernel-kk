@@ -659,7 +659,7 @@ static ssize_t tuning_show(struct device *dev,
 	pos += sprintf(pos, "++ %s: %s\n", __func__, mdnie->path);
 
 	if (!mdnie->tuning) {
-		pos += sprintf(pos, "tunning mode is off\n");
+		pos += sprintf(pos, "tuning mode is off\n");
 		goto exit;
 	}
 
