@@ -127,13 +127,10 @@
 static struct class *mdnie_class;
 struct mdnie_info *g_mdnie;
 
-extern unsigned short mdnie_reg_hook(unsigned short reg, unsigned short value);
-extern unsigned short *mdnie_sequence_hook(struct mdnie_info *pmdnie, unsigned short *seq);
-
-int mdnie_send_sequence(struct mdnie_info *mdnie, unsigned short *seq)
+static int mdnie_send_sequence(struct mdnie_info *mdnie, const unsigned short *seq)
 {
 	int ret = 0, i = 0;
-	unsigned short *wbuf;
+	const unsigned short *wbuf = NULL;
 
 	if (IS_ERR_OR_NULL(seq)) {
 		dev_err(mdnie->dev, "mdnie sequence is null\n");
@@ -142,12 +139,12 @@ int mdnie_send_sequence(struct mdnie_info *mdnie, unsigned short *seq)
 
 	mutex_lock(&mdnie->dev_lock);
 
-	wbuf = mdnie_sequence_hook(mdnie, seq);
+	wbuf = seq;
 
 	mdnie_mask();
 
 	while (wbuf[i] != END_SEQ) {
-		mdnie_write(wbuf[i], mdnie_reg_hook(wbuf[i], wbuf[i+1]));
+		ret += mdnie_write(wbuf[i], wbuf[i+1]);
 		i += 2;
 	}
 
@@ -890,147 +887,6 @@ static void mdnie_late_resume(struct early_suspend *h)
 	return;
 }
 #endif
-#endif
-
-#ifdef CONFIG_FB_S5P_MDNIE_CONTROL
-#define MDNIE_STORE(name) \
-static ssize_t show_##name(struct device *dev, \
-		struct device_attribute *attr, \
-		char *buf) \
-{ \
-	int i; \
-	for (i = 2; i <= sizeof(name); i+=2) \
-	{ \
-		if(name[i] == END_SEQ) break; \
-		sprintf(buf, "%s0x%X 0x%X\n", buf, name[i], name[i+1]); \
-	} \
-	return sprintf(buf, "%s", buf); \
-} \
-static ssize_t store_##name(struct device *dev, \
-				  struct device_attribute *attr, \
-				  const char *buf, size_t size) \
-{ \
-	short unsigned int reg = 0; \
-	short unsigned int val = 0; \
-	int unsigned bytes_read = 0; \
-	int i; \
-	while (sscanf(buf, "%hx %hx%n", &reg, &val, &bytes_read) == 2) { \
-		buf += bytes_read; \
-		for(i = 2; i<= sizeof(name); i+=2) { \
-			if(name[i] == END_SEQ) break; \
-			if(name[i] == reg) { \
-				name[i+1] = val; \
-				set_mdnie_value(g_mdnie, 1); \
-				break; \
-			} \
-		} \
-	} \
-	return size; \
-} \
-static DEVICE_ATTR(name, S_IRUGO | S_IWUGO, show_##name, store_##name);
-
-
-MDNIE_STORE(tune_dynamic_gallery);
-MDNIE_STORE(tune_dynamic_ui);
-MDNIE_STORE(tune_dynamic_video);
-MDNIE_STORE(tune_dynamic_vt);
-MDNIE_STORE(tune_movie_gallery);
-MDNIE_STORE(tune_movie_ui);
-MDNIE_STORE(tune_movie_video);
-MDNIE_STORE(tune_movie_vt);
-MDNIE_STORE(tune_standard_gallery);
-MDNIE_STORE(tune_standard_ui);
-MDNIE_STORE(tune_standard_video);
-MDNIE_STORE(tune_standard_vt);
-MDNIE_STORE(tune_natural_gallery);
-MDNIE_STORE(tune_natural_ui);
-MDNIE_STORE(tune_natural_video);
-MDNIE_STORE(tune_natural_vt);
-MDNIE_STORE(tune_camera);
-MDNIE_STORE(tune_camera_outdoor);
-MDNIE_STORE(tune_cold);
-MDNIE_STORE(tune_cold_outdoor);
-MDNIE_STORE(tune_normal_outdoor);
-MDNIE_STORE(tune_warm);
-MDNIE_STORE(tune_warm_outdoor);
-
-MDNIE_STORE(tune_negative);
-#ifdef CONFIG_FB_MDNIE_PWM
-MDNIE_STORE(tune_negative_cabc);
-#endif
-MDNIE_STORE(tune_color_tone_1);
-MDNIE_STORE(tune_color_tone_2);
-MDNIE_STORE(tune_color_tone_3);
-
-#define MDNIE_ATTR(name) &dev_attr_##name.attr,
-
-static struct attribute *mdniesysfs_attributes[] = {
-MDNIE_ATTR(tune_dynamic_gallery)
-MDNIE_ATTR(tune_dynamic_ui)
-MDNIE_ATTR(tune_dynamic_video)
-MDNIE_ATTR(tune_dynamic_vt)
-MDNIE_ATTR(tune_movie_gallery)
-MDNIE_ATTR(tune_movie_ui)
-MDNIE_ATTR(tune_movie_video)
-MDNIE_ATTR(tune_movie_vt)
-MDNIE_ATTR(tune_standard_gallery)
-MDNIE_ATTR(tune_standard_ui)
-MDNIE_ATTR(tune_standard_video)
-MDNIE_ATTR(tune_standard_vt)
-MDNIE_ATTR(tune_natural_gallery)
-MDNIE_ATTR(tune_natural_ui)
-MDNIE_ATTR(tune_natural_video)
-MDNIE_ATTR(tune_natural_vt)
-MDNIE_ATTR(tune_camera)
-MDNIE_ATTR(tune_camera_outdoor)
-MDNIE_ATTR(tune_cold)
-MDNIE_ATTR(tune_cold_outdoor)
-MDNIE_ATTR(tune_normal_outdoor)
-MDNIE_ATTR(tune_warm)
-MDNIE_ATTR(tune_warm_outdoor)
-
-MDNIE_ATTR(tune_negative)
-#ifdef CONFIG_FB_MDNIE_PWM
-MDNIE_ATTR(tune_negative_cabc)
-#endif
-MDNIE_ATTR(tune_color_tone_1)
-MDNIE_ATTR(tune_color_tone_2)
-MDNIE_ATTR(tune_color_tone_3)
-	NULL
-};
-
-static struct attribute_group mdnie_group = {
-	.attrs = mdniesysfs_attributes,
-};
-
-static struct miscdevice mdnie_device = {
-	.minor = MISC_DYNAMIC_MINOR,
-	.name = "mdnie",
-};
-
-extern void init_intercept_control(struct kobject *kobj);
-
-static int mdniemod_create_sysfs(void)
-{
-	int ret;
-	struct kobject *kobj;
-
-	ret = misc_register(&mdnie_device);
-	if (ret) {
-	    pr_err("%s misc_register(%s) fail\n", __FUNCTION__, mdnie_device.name);
-	    return 1;
-	}
-
-	kobj = kobject_create_and_add("scenario_control", &mdnie_device.this_device->kobj);
-
-	init_intercept_control(&mdnie_device.this_device->kobj);
-
-	if (sysfs_create_group(kobj, &mdnie_group) < 0) {
-	    pr_err("%s sysfs_create_group fail\n", __FUNCTION__);
-	    pr_err("Failed to create sysfs group for device (%s)!\n", mdnie_device.name);
-	}
-	return 0;
-}
 #endif
 
 static int mdnie_probe(struct platform_device *pdev)
