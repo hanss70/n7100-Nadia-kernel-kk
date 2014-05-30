@@ -93,9 +93,6 @@ obj-$(CONFIG_MOBICORE_DRIVER)  += tzic.o
 ifeq ($(TIMA_ENABLED),1)
 obj-$(CONFIG_TIMA_LOG)		+= tima_debug_log.o
 endif
-<<<<<<< HEAD
 
 # Touchwake
 obj-$(CONFIG_TOUCH_WAKE)  += touch_wake.o
-=======
->>>>>>> parent of 7890ede... Implemented Touchwake v1.1 (N710x)
