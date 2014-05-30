@@ -31,10 +31,6 @@
 #include <linux/wakelock.h>
 #endif
 
-#ifdef CONFIG_TOUCH_WAKE
-#include <linux/touch_wake.h>
-#endif
-
 extern struct class *sec_class;
 
 struct gpio_button_data {
@@ -959,10 +955,13 @@ static int __devinit gpio_keys_probe(struct platform_device *pdev)
 			wakeup = 1;
 
 		input_set_capability(input, type, button->code);
+<<<<<<< HEAD
 
 		#ifdef CONFIG_TOUCH_WAKE
 			  set_powerkeydev(input);
 		#endif
+=======
+>>>>>>> parent of 7890ede... Implemented Touchwake v1.1 (N710x)
 	}
 
 	error = sysfs_create_group(&pdev->dev.kobj, &gpio_keys_attr_group);
