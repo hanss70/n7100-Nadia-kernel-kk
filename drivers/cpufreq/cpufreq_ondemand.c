@@ -22,21 +22,7 @@
 #include <linux/tick.h>
 #include <linux/ktime.h>
 #include <linux/sched.h>
-<<<<<<< HEAD
 #include <linux/pm_qos_params.h>
-=======
-#include <linux/input.h>
-#include <linux/workqueue.h>
-#include <linux/kthread.h>
-#include <linux/slab.h>
-	
-#ifdef CONFIG_EARLYSUSPEND
-#include <linux/earlysuspend.h>
-#endif
-
-#define CREATE_TRACE_POINTS
-#include <trace/events/cpufreq_interactive.h>
->>>>>>> 77584c7... cpufreq: ondemand: add earlysuspend
 
 /*
  * dbs is used in this file as a shortform for demandbased switching
@@ -73,16 +59,6 @@
 #define MIN_SAMPLING_RATE_RATIO			(2)
 
 static unsigned int min_sampling_rate;
-<<<<<<< HEAD
-=======
-
-#ifdef CONFIG_EARLYSUSPEND
-bool screen_is_on = true;
-static unsigned long stored_sampling_rate;
-#endif
-
-static unsigned int skip_ondemand = 0;
->>>>>>> 77584c7... cpufreq: ondemand: add earlysuspend
 
 #define LATENCY_MULTIPLIER			(1000)
 #define MIN_LATENCY_MULTIPLIER			(100)
@@ -956,35 +932,9 @@ static int qos_dvfs_lat_notify(struct notifier_block *nb, unsigned long value,
 	return NOTIFY_OK;
 }
 
-<<<<<<< HEAD
 static struct notifier_block ondemand_qos_dvfs_lat_nb = {
 	.notifier_call = qos_dvfs_lat_notify,
 };
-=======
-#ifdef CONFIG_EARLYSUSPEND
-static void cpufreq_ondemand_early_suspend(struct early_suspend *h)
-{
-        mutex_lock(&dbs_mutex);
-        screen_is_on = false;
-        stored_sampling_rate = min_sampling_rate;
-        min_sampling_rate = MICRO_FREQUENCY_MIN_SAMPLE_RATE * 6;
-        mutex_unlock(&dbs_mutex);
-}
-static void cpufreq_ondemand_late_resume(struct early_suspend *h)
-{
-        mutex_lock(&dbs_mutex);
-        min_sampling_rate = stored_sampling_rate;
-        screen_is_on = true;
-        mutex_unlock(&dbs_mutex);
-}
-	
-static struct early_suspend cpufreq_ondemand_early_suspend_info = {
-        .suspend = cpufreq_ondemand_early_suspend,
-        .resume = cpufreq_ondemand_late_resume,
-        .level = EARLY_SUSPEND_LEVEL_DISABLE_FB,
-};	
-#endif
->>>>>>> 77584c7... cpufreq: ondemand: add earlysuspend
 
 static int __init cpufreq_gov_dbs_init(void)
 {
@@ -1022,15 +972,8 @@ static int __init cpufreq_gov_dbs_init(void)
 		pm_qos_remove_notifier(PM_QOS_DVFS_RESPONSE_LATENCY,
 				       &ondemand_qos_dvfs_lat_nb);
 	}
-<<<<<<< HEAD
 
 	return err;
-=======
-#ifdef CONFIG_EARLYSUSPEND
-	register_early_suspend(&cpufreq_ondemand_early_suspend_info);
-#endif
-	return cpufreq_register_governor(&cpufreq_gov_ondemand);
->>>>>>> 77584c7... cpufreq: ondemand: add earlysuspend
 }
 
 static void __exit cpufreq_gov_dbs_exit(void)
@@ -1039,7 +982,6 @@ static void __exit cpufreq_gov_dbs_exit(void)
 			       &ondemand_qos_dvfs_lat_nb);
 
 	cpufreq_unregister_governor(&cpufreq_gov_ondemand);
-<<<<<<< HEAD
 }
 
 #ifdef CONFIG_CPU_FREQ_GOV_ONDEMAND_FLEXRATE
@@ -1081,19 +1023,6 @@ static int cpufreq_ondemand_flexrate_do(struct cpufreq_policy *policy,
 
 		mutex_unlock(&dbs_info->timer_mutex);
 		mutex_lock(&flex_mutex);
-=======
-#ifdef CONFIG_EARLYSUSPEND
-	unregister_early_suspend(&cpufreq_ondemand_early_suspend_info);
-#endif
-	for_each_possible_cpu(i) {
-		struct cpu_dbs_info_s *this_dbs_info =
-			&per_cpu(od_cpu_dbs_info, i);
-		mutex_destroy(&this_dbs_info->timer_mutex);
-		if (per_cpu(up_task, i)) {
-			kthread_stop(per_cpu(up_task, i));
-			put_task_struct(per_cpu(up_task, i));
-		}
->>>>>>> 77584c7... cpufreq: ondemand: add earlysuspend
 	}
 
 	return 0;
@@ -1281,4 +1210,3 @@ fs_initcall(cpufreq_gov_dbs_init);
 module_init(cpufreq_gov_dbs_init);
 #endif
 module_exit(cpufreq_gov_dbs_exit);
-
